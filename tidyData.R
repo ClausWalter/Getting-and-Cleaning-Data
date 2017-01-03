@@ -72,10 +72,15 @@ tidyData<-function(){
   select <- c(key(data), dataFeatures$featureCode)
   data <- data[, select, with=FALSE]
   
+  ## Writing the tidied and cleansed data:
+  
+  write.table(data, file = "~/CleansedandTidiedData.txt", append = FALSE, quote = TRUE, sep = "\t", eol = "\n", na = "NA", dec = ".", row.names = TRUE, col.names = TRUE, qmethod = c("escape", "double"), fileEncoding = "")
+  
   ## Now enriching the activity names:
   print("Now enriching the activity names")
   
   dataActivityNames <- fread(file.path(pathIn, "activity_labels.txt"))
+  print(head(data))
   setnames(dataActivityNames, names(dataActivityNames), c("activityNum", "activityName"))
   data <- merge(data, dataActivityNames, by="activityNum", all.x=TRUE)
   setkey(data, subject, activityNum, activityName)
@@ -83,6 +88,7 @@ tidyData<-function(){
   data <- merge(data, dataFeatures[, list(featureNum, featureCode, featureName)], by="featureCode", all.x=TRUE)
   data$activity <- factor(data$activityName)
   data$feature <- factor(data$featureName)
+
   ## A little helper-function to shorten the remaining code:
   grepspecial <- function (repli) { grepl(repli, data$feature) }
   ## Features with 2 categories
@@ -110,7 +116,7 @@ tidyData<-function(){
   setkey(data, subject, activity, featDomain, featAcceleration, featInstrument, featJerk, featMagnitude, featVariable, featAxis)
   dataTidy <- data[, list(count = .N, average = mean(value)), by=key(data)]
   
-  ## And now the output. Lots of console output here, so no need to add another one for this last step.
+  ## And now the final output. Lots of console output here, so no need to add another one for this last step.
   
   print(head(dataTidy, 10))
   print(tail(dataTidy, 10))
